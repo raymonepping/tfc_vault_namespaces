@@ -143,3 +143,4 @@ crash.log
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.backup*.backup
+terraform.tfstate.*.backup
