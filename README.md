@@ -278,3 +278,7 @@ Everything is optimized for:
 * Safety
 * Instructor sanity
 * Workshop repeatability
+
+## 🧾 License
+
+[GPLv3](LICENSE) © Raymon Epping
