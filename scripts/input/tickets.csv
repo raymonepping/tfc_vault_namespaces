@@ -1,0 +1,4 @@
+﻿first_name;last_name;email;order.metadata.city;order.metadata.company;order_ticket.metadata.fullname;geolocation.locality;geolocation.admin_level_1;geolocation.admin_level_2;geolocation.country_code
+Raymon;Epping;raymon.epping@ibm.com;Bodegraven;HashiCorp an IBM company;;Bodegraven;South Holland;Bodegraven-Reeuwijk;NL
+Mahil;el Khatib;mahil@ibm.com;Veenendaal;HashiCorp;;Veenendaal;Utrecht;Veenendaal;NL
+Cojan;van Ballegooijen;cojan.vanballegooijen@ibm.com;Utrecht;HashiCorp;;Utrecht;Utrecht;Utrecht;NL
