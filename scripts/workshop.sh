@@ -6,7 +6,7 @@ cd "$ROOT_DIR"
 
 INPUT_DIR="${ROOT_DIR}/input"
 OUTPUT_DIR="${ROOT_DIR}/output"
-VERSION="1.0.0"
+VERSION="1.1.0"
 
 # ────────────────────────────────────────────────────────────────
 # Colors & formatting
@@ -97,6 +97,13 @@ ${BOLD}🛠 Commands${RESET}
     ${DIM}Call workshop_nuke_namespaces.sh with the same flags.${RESET}
     ${YELLOW}⚠️  Instructor-only safety net. Respects NUKE_ALLOWED=true in .env.${RESET}
 
+  ${GREEN}$0 package${RESET}
+    ${DIM}Create a workshop_package_YYYYMMDD_HHMMSS.zip with:${RESET}
+      • env/*.env
+      • meta/credentials.csv, meta/wrapped_story_tokens.csv
+      • tfvars/attendees.auto.tfvars.json
+      • input/tickets.csv
+
 ${BOLD}🧷 Global flags${RESET}
   ${GREEN}-h, --help${RESET}      Show this help
   ${GREEN}-V, --version${RESET}   Show script version
@@ -114,6 +121,7 @@ ${BOLD}📎 Examples${RESET}
   ${GREEN}$0 preflight${RESET}
   ${GREEN}$0 status${RESET}
   ${GREEN}$0 nuke --dry-run --include-orphans${RESET}
+  ${GREEN}$0 package${RESET}
 EOF
 }
 
@@ -326,13 +334,13 @@ case "$CMD" in
       fi
     }
 
-    check_output_file "tickets.json"              "Basic tickets JSON"
-    check_output_file "tickets_extended.json"     "Extended tickets JSON"
+    check_output_file "tickets.json"               "Basic tickets JSON"
+    check_output_file "tickets_extended.json"      "Extended tickets JSON"
     check_output_file "attendees.auto.tfvars.json" "Terraform tfvars"
-    check_output_file "credentials.csv"           "Credentials CSV"
-    check_output_file "credentials.json"          "Credentials JSON"
-    check_output_file "wrapped_story_tokens.csv"  "Wrapped story tokens CSV"
-    check_output_file "wrapped_story_tokens.json" "Wrapped story tokens JSON"
+    check_output_file "credentials.csv"            "Credentials CSV"
+    check_output_file "credentials.json"           "Credentials JSON"
+    check_output_file "wrapped_story_tokens.csv"   "Wrapped story tokens CSV"
+    check_output_file "wrapped_story_tokens.json"  "Wrapped story tokens JSON"
 
     # Extra counts if jq is available
     if command -v jq >/dev/null 2>&1; then
@@ -364,6 +372,7 @@ case "$CMD" in
         if [[ -n "$ns_json" && "$ns_json" != "null" ]]; then
           ns_count=$(echo "$ns_json" | jq 'length' 2>/dev/null || echo "?")
           ok "Vault reachable at ${VAULT_ADDR} (namespaces: ${ns_count})"
+
           # Show names if small
           if [[ "$ns_count" != "?" && "$ns_count" -le 10 ]]; then
             ns_list=$(echo "$ns_json" | jq -r '.[]' 2>/dev/null || true)
@@ -371,18 +380,16 @@ case "$CMD" in
               echo "${DIM}   Namespaces:${RESET}"
               while IFS= read -r ns; do
                 echo "     • ${ns}"
-              done <<< "$ns_list"
+              done <<<"$ns_list"
             fi
           fi
-        # Post-nuke detection:
-        # If no team_* namespaces exist, show a clean "freshly nuked" hint.
-        if command -v jq >/dev/null 2>&1; then
-            team_count=$(echo "$ns_json" | jq '[ .[] | select(startswith("team_")) ] | length')
-            if [[ "$team_count" -eq 0 ]]; then
+
+          # Post-nuke detection: if no team_* namespaces exist, show a clean hint.
+          team_count=$(echo "$ns_json" | jq '[ .[] | select(startswith("team_")) ] | length' 2>/dev/null || echo "0")
+          if [[ "$team_count" -eq 0 ]]; then
             echo
             info "🧹 No team_* namespaces found — Vault looks freshly nuked."
-            fi
-        fi
+          fi
         else
           warn "Vault reachable but sys/namespaces returned no data (or token lacks permission)."
         fi
@@ -399,6 +406,12 @@ case "$CMD" in
 
     echo
     ok "Status check complete."
+    ;;
+
+  package)
+    require_script "workshop_package.sh"
+    echo "${BOLD}📦 Running workshop package builder${RESET}"
+    ./workshop_package.sh
     ;;
 
   nuke)
